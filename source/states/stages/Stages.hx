@@ -496,6 +496,136 @@ class Stages extends MusicBeatState
 		}
 	}
 
+	var doof:DialogueBox = null;
+	function initDoof()
+	{
+		if (isStoryMode)
+		{
+			switch (StringTools.replace(curSong, " ", "-").toLowerCase())
+			{
+				case "winter-horrorland":
+					var blackScreen:FlxSprite = new FlxSprite(0, 0).makeGraphic(Std.int(FlxG.width * 2), Std.int(FlxG.height * 2), FlxColor.BLACK);
+					add(blackScreen);
+					blackScreen.scrollFactor.set();
+					camHUD.visible = false;
+
+					new FlxTimer().start(0.1, function(tmr:FlxTimer)
+					{
+						remove(blackScreen);
+						FlxG.sound.play(Paths.sound('Lights_Turn_On'));
+						camFollow.y = -2050;
+						camFollow.x += 200;
+						FlxG.camera.focusOn(camFollow.getPosition());
+						FlxG.camera.zoom = 1.5;
+
+						new FlxTimer().start(1, function(tmr:FlxTimer)
+						{
+							camHUD.visible = true;
+							remove(blackScreen);
+							FlxTween.tween(FlxG.camera, {zoom: Stage.camZoom}, 2.5, {
+								ease: FlxEase.quadInOut,
+								onComplete: function(twn:FlxTween)
+								{
+									startCountdown();
+								}
+							});
+						});
+					});
+				case 'senpai':
+					schoolIntro(doof);
+				case 'roses':
+					FlxG.sound.play(Paths.sound('ANGRY'));
+					schoolIntro(doof);
+				case 'thorns':
+					schoolIntro(doof);
+				case 'dunk' | 'ram' | 'hello-world' | 'glitcher' | 'cooling' | 'detected':
+					if (!restartedSong && hexDiag != null)
+					{
+						hexCutscene(hexDiag);
+						if (laneunderlay != null)
+						{
+							if (laneunderlayOpponent != null)
+								laneunderlayOpponent.visible = false;
+							laneunderlay.visible = false;
+						}
+					}
+					else
+					{
+						new FlxTimer().start(1, function(timer)
+						{
+							startCountdown();
+						});
+					}
+				default:
+					new FlxTimer().start(1, function(timer)
+					{
+						startCountdown();
+					});
+			}
+		}
+		else
+		{
+			new FlxTimer().start(1, function(timer)
+			{
+				trace('starting');
+				startCountdown();
+			});
+		}
+
+		if (!loadRep)
+			rep = new Replay("na");
+
+		// This allow arrow key to be detected by flixel. See https://github.com/HaxeFlixel/flixel/issues/2190
+		FlxG.keys.preventDefaultKeys = [];
+		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, handleInput);
+		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, releaseInput);
+	}
+
+	function start()
+	{
+
+		var hexDiag:HEXDialogueBox = null;
+
+		if (isStoryMode && !restartedSong)
+		{
+			switch (Stage.curStage)
+			{
+				case 'hex':
+					var sprite = new FlxSprite(-340, -190).loadGraphic(Paths.image('cutscenes/CUT1', 'hex'));
+					sprite.antialiasing = true;
+					sprite.setGraphicSize(Std.int(sprite.width * 0.8));
+					hexDiag = new HEXDialogueBox(false, dialogue, sprite);
+				case 'hexss':
+					var sprite = new FlxSprite(-340, -190).loadGraphic(Paths.image('cutscenes/CUT7', 'hex'));
+					sprite.antialiasing = true;
+					sprite.setGraphicSize(Std.int(sprite.width * 0.8));
+					hexDiag = new HEXDialogueBox(false, dialogue, sprite);
+				case 'hexn':
+					var sprite = new FlxSprite(-340, -190).loadGraphic(Paths.image('cutscenes/CUT10', 'hex'));
+					sprite.antialiasing = true;
+					sprite.setGraphicSize(Std.int(sprite.width * 0.8));
+					hexDiag = new HEXDialogueBox(false, dialogue, sprite);
+				case 'hexg':
+					var sprite = new FlxSprite(-340, -190).loadGraphic(Paths.image('cutscenes/CUT13', 'hex'));
+					sprite.antialiasing = true;
+					sprite.setGraphicSize(Std.int(sprite.width * 0.8));
+					hexDiag = new HEXDialogueBox(false, dialogue, sprite);
+			}
+
+			if (hexDiag != null)
+			{
+				camHUD.visible = false;
+				hexDiag.scrollFactor.set();
+				hexDiag.finishThing = startCountdown;
+			}
+		}
+	}
+	function hexCutscene(diag:HEXDialogueBox)
+	{
+		inCutscene = true;
+		add(diag);
+	}
+
 	override function stepHit()
 	{
 		super.stepHit();
